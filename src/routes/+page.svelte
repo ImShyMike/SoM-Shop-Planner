@@ -8,7 +8,8 @@
 	let data: ApiResponse | undefined;
 	let showBlackMarket = false;
 	let showBadges = false;
-	let seachQuery = '';
+	let hasMounted = false;
+	let searchQuery = '';
 	let balanceInput = 0;
 	let filteredAndSorted: ApiResponse = [];
 	let badges: number[] = [110, 108, 105, 109, 113, 115, 114, 107];
@@ -23,6 +24,11 @@
 
 	onMount(async () => {
 		setBalance(localStorage.getItem('balance') ? Number(localStorage.getItem('balance')) : 0);
+		setRegion(localStorage.getItem('region') as string);
+		let config = localStorage.getItem('filter');
+		showBadges = config?.includes('badges') ?? false;
+		showBlackMarket = config?.includes('blackMarket') ?? false;
+		hasMounted = true;
 		data = await fetchData();
 	});
 
@@ -36,9 +42,9 @@
 			.filter((shop) => showBlackMarket || shop.shopType !== 'blackMarket')
 			.filter((shop) => showBadges || !badges.includes(shop.id))
 			.filter((shop) =>
-				seachQuery
-					? shop.title.toLowerCase().includes(seachQuery.toLowerCase()) ||
-					  shop.description.toLowerCase().includes(seachQuery.toLowerCase())
+				searchQuery
+					? shop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+						shop.description.toLowerCase().includes(searchQuery.toLowerCase())
 					: true
 			)
 			.sort((a, b) => {
@@ -52,6 +58,13 @@
 				return priceA - priceB;
 			});
 	}
+
+	$: if (hasMounted) {
+		const filters: string[] = [];
+		if (showBadges) filters.push('badges');
+		if (showBlackMarket) filters.push('blackMarket');
+		localStorage.setItem('filter', filters.join(','));
+	}
 </script>
 
 <main class="flex min-h-screen flex-col items-center bg-mantle p-4 text-text">
@@ -64,10 +77,10 @@
 		<div
 			class="flex flex-col items-center self-stretch rounded border border-ctp-blue/70 bg-ctp-base p-4 text-text"
 		>
-			<h2 class="pb-2">Selected region: <span class="text-red">{$selectedRegion}</span></h2>
-			<div class="flex flex-wrap gap-2 text-subtext0">
+			<h2 class="pb-2">Shop Region</h2>
+			<div class="flex flex-wrap gap-2 text-subtext1">
 				{#each REGION_OPTIONS as r (r)}
-					<button class="rounded bg-overlay0/20 p-2" on:click={() => setRegion(r)}>{r}</button>
+					<button class="{$selectedRegion == r ? "bg-blue text-crust" : "bg-overlay0/20"} cursor-pointer rounded p-2" on:click={() => setRegion(r)}>{r}</button>
 				{/each}
 			</div>
 		</div>
@@ -99,22 +112,24 @@
 		</div>
 	</div>
 
-	<div class="mt-4 flex w-full max-w-4xl flex-row items-center justify-center gap-4 mx-auto">
-		<div class="flex w-full max-w-md flex-col gap-1 justify-center">
+	<div class="mx-auto mt-4 flex w-full max-w-4xl flex-row items-center justify-center gap-4">
+		<div class="flex w-full max-w-md flex-col justify-center gap-1">
 			<label for="searchInput" class="text-sm text-subtext0">Search items</label>
 			<input
 				id="searchInput"
 				type="text"
 				placeholder="Search for items..."
-				bind:value={seachQuery}
+				bind:value={searchQuery}
 				tabindex="0"
-				class="w-full h-10 rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
+				class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
 			/>
 		</div>
-		<div class="flex w-full max-w-[160px] flex-col gap-1 justify-center">
+		<div class="flex w-full max-w-[160px] flex-col justify-center gap-1">
 			<label for="balanceInput" class="text-sm text-subtext0">Current shell balance</label>
 			<div class="relative">
-				<span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtext0">S</span>
+				<span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-subtext0"
+					>S</span
+				>
 				<input
 					id="balanceInput"
 					type="number"
@@ -122,7 +137,7 @@
 					bind:value={balanceInput}
 					on:input={handleBalanceInput}
 					min="0"
-					class="w-full h-10 rounded border border-ctp-blue/70 bg-ctp-base p-2 pl-8 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
+					class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 pl-8 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
 				/>
 			</div>
 		</div>

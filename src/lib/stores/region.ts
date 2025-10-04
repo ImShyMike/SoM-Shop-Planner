@@ -11,6 +11,7 @@ export const selectedRegion = writable<Region>(DEFAULT_REGION);
 
 export function setRegion(region: string) {
 	if (!isValidRegion(region)) return;
+	localStorage.setItem('region', region);
 	selectedRegion.set(region);
 }
 
