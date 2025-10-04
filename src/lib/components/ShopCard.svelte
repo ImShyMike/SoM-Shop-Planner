@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Region, ShopItem } from '$lib/api';
 	import { config } from '$lib/stores/config';
+	import { cart, incrementItemCount } from '$lib/stores/cart';
 
 	const currentRegion = $derived(($config.region ?? 'US') as Region);
 	const currentBalance = $derived($config.balance ?? 0);
@@ -9,16 +10,13 @@
 	const props = $props<{ item: ShopItem }>();
 	let item: ShopItem = props.item;
 
-	let amount = $state(0);
+	const amount = $derived($cart[item.id] ?? 0);
 
 	function changeAmount(event: MouseEvent | KeyboardEvent, direction: 1 | -1) {
 		const modifierActive = event.ctrlKey || event.metaKey;
 		const step = modifierActive ? 10 : 1;
-		if (direction === 1) {
-			amount += step;
-			return;
-		}
-		amount = Math.max(0, amount - step);
+		const delta = step * direction;
+		incrementItemCount(item.id, delta);
 	}
 
 	function highlightSearchTerm(text: string): string {
@@ -48,8 +46,12 @@
 		</div>
 		{#if amount > 0}
 			<div class="absolute top-4 left-4 flex items-center gap-1 text-lg">
-			<span class="font-medium text-crust bg-lavender rounded-full w-10 h-10 inline-flex items-center justify-center">{amount}x</span>
-		</div>
+				<span
+					class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-lavender font-medium text-crust"
+				>
+					{amount}x
+				</span>
+			</div>
 		{/if}
 		<h3 class="font-bold">{@html highlightSearchTerm(item.title)}</h3>
 		<p class="text-subtext-0 mb-2">{@html highlightSearchTerm(item.description)}</p>
@@ -76,13 +78,13 @@
 				</span>
 			</a>
 			<button
-				class="w-11 cursor-pointer bg-blue/80 hover:scale-[1.04] hover:bg-blue/70 active:scale-95 mt-auto inline-flex transform-gpu items-center justify-center gap-1.5 rounded-md p-2 font-medium text-crust transition duration-300 ease-out will-change-transform"
+				class="mt-auto inline-flex w-11 transform-gpu cursor-pointer items-center justify-center gap-1.5 rounded-md bg-blue/80 p-2 font-medium text-crust transition duration-300 ease-out will-change-transform hover:scale-[1.04] hover:bg-blue/70 active:scale-95"
 				onclick={(event) => changeAmount(event, 1)}
 			>
 				+
 			</button>
 			<button
-				class="w-11 cursor-pointer bg-red/80 hover:scale-[1.04] hover:bg-red/70 active:scale-95 mt-auto inline-flex transform-gpu items-center justify-center gap-1.5 rounded-md p-2 font-medium text-crust transition duration-300 ease-out will-change-transform"
+				class="mt-auto inline-flex w-11 transform-gpu cursor-pointer items-center justify-center gap-1.5 rounded-md bg-red/80 p-2 font-medium text-crust transition duration-300 ease-out will-change-transform hover:scale-[1.04] hover:bg-red/70 active:scale-95"
 				onclick={(event) => changeAmount(event, -1)}
 			>
 				-
