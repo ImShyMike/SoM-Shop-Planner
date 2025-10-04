@@ -2,19 +2,21 @@
 	import { onMount } from 'svelte';
 	import { type ApiResponse, fetchData } from '$lib/api';
 	import { selectedRegion, setRegion, REGION_OPTIONS } from '$lib/stores/region';
-	import { balance, setBalance } from '$lib/stores/balance';
+	import { setBalance } from '$lib/stores/balance';
+	import { searchQuery } from '$lib/stores/search';
 	import ShopCard from '$lib/components/ShopCard.svelte';
+
+	type FilterConfig = {
+		showBadges?: unknown;
+		showBlackMarket?: unknown;
+	};
 
 	let data: ApiResponse | undefined;
 	let showBlackMarket = false;
 	let showBadges = false;
 	let hasMounted = false;
-	let searchQuery = '';
-	let balanceInput = 0;
 	let filteredAndSorted: ApiResponse = [];
 	let badges: number[] = [110, 108, 105, 109, 113, 115, 114, 107];
-
-	$: balanceInput = $balance;
 
 	function handleBalanceInput(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -25,9 +27,19 @@
 	onMount(async () => {
 		setBalance(localStorage.getItem('balance') ? Number(localStorage.getItem('balance')) : 0);
 		setRegion(localStorage.getItem('region') as string);
-		let config = localStorage.getItem('filter');
-		showBadges = config?.includes('badges') ?? false;
-		showBlackMarket = config?.includes('blackMarket') ?? false;
+		const rawFilter = localStorage.getItem('filter');
+		if (rawFilter) {
+			try {
+				const parsed = JSON.parse(rawFilter) as FilterConfig;
+				showBadges = Boolean(parsed.showBadges);
+				showBlackMarket = Boolean(parsed.showBlackMarket);
+			} catch (error) {
+				console.error('Failed to parse filter settings from storage', error);
+				showBadges = false;
+				showBlackMarket = false;
+				localStorage.removeItem('filter');
+			}
+		}
 		hasMounted = true;
 		data = await fetchData();
 	});
@@ -42,9 +54,9 @@
 			.filter((shop) => showBlackMarket || shop.shopType !== 'blackMarket')
 			.filter((shop) => showBadges || !badges.includes(shop.id))
 			.filter((shop) =>
-				searchQuery
-					? shop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						shop.description.toLowerCase().includes(searchQuery.toLowerCase())
+				$searchQuery
+					? shop.title.toLowerCase().includes($searchQuery.toLowerCase()) ||
+						shop.description.toLowerCase().includes($searchQuery.toLowerCase())
 					: true
 			)
 			.sort((a, b) => {
@@ -60,10 +72,13 @@
 	}
 
 	$: if (hasMounted) {
-		const filters: string[] = [];
-		if (showBadges) filters.push('badges');
-		if (showBlackMarket) filters.push('blackMarket');
-		localStorage.setItem('filter', filters.join(','));
+		localStorage.setItem(
+			'filter',
+			JSON.stringify({
+				showBadges,
+				showBlackMarket
+			})
+		);
 	}
 </script>
 
@@ -80,7 +95,7 @@
 			<h2 class="pb-2">Shop Region</h2>
 			<div class="flex flex-wrap gap-2 text-subtext1">
 				{#each REGION_OPTIONS as r (r)}
-					<button class="{$selectedRegion == r ? "bg-blue text-crust" : "bg-overlay0/20"} cursor-pointer rounded p-2" on:click={() => setRegion(r)}>{r}</button>
+					<button class="{$selectedRegion == r ? "bg-blue text-crust" : "bg-overlay0/20"} cursor-pointer rounded p-2" onclick={() => setRegion(r)}>{r}</button>
 				{/each}
 			</div>
 		</div>
@@ -119,7 +134,7 @@
 				id="searchInput"
 				type="text"
 				placeholder="Search for items..."
-				bind:value={searchQuery}
+				oninput={(e) => searchQuery.set((e.target as HTMLInputElement).value)}
 				tabindex="0"
 				class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
 			/>
@@ -134,8 +149,7 @@
 					id="balanceInput"
 					type="number"
 					placeholder="Enter amount"
-					bind:value={balanceInput}
-					on:input={handleBalanceInput}
+					oninput={handleBalanceInput}
 					min="0"
 					class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 pl-8 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
 				/>

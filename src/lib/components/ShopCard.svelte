@@ -1,15 +1,31 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { selectedRegion } from '$lib/stores/region';
 	import type { Region, ShopItem } from '$lib/api';
 	import { balance } from '$lib/stores/balance';
+	import { searchQuery } from '$lib/stores/search';
 
-	let currentRegion: Region = $selectedRegion;
-	let currentBalance: number = $balance;
+	let currentRegion = $state<Region>('US');
+	let currentBalance = $state(0);
+
+	const unsubscribeRegion = selectedRegion.subscribe((value) => {
+		currentRegion = value;
+	});
+
+	const unsubscribeBalance = balance.subscribe((value) => {
+		currentBalance = value;
+	});
+
+	onDestroy(() => {
+		unsubscribeRegion();
+		unsubscribeBalance();
+	});
 
 	const props = $props<{ item: ShopItem }>();
 	let item: ShopItem = props.item;
 
 	let amount = $state(0);
+
 	function changeAmount(event: MouseEvent | KeyboardEvent, direction: 1 | -1) {
 		const modifierActive = event.ctrlKey || event.metaKey;
 		const step = modifierActive ? 10 : 1;
@@ -18,6 +34,14 @@
 			return;
 		}
 		amount = Math.max(0, amount - step);
+	}
+
+	function highlightSearchTerm(text: string): string {
+		const query = $searchQuery.trim();
+		if (!query) return text;
+
+		const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+		return text.replace(regex, '<mark class="bg-yellow/90">$1</mark>');
 	}
 </script>
 
@@ -42,8 +66,8 @@
 			<span class="font-medium text-crust bg-lavender rounded-full w-10 h-10 inline-flex items-center justify-center">{amount}x</span>
 		</div>
 		{/if}
-		<h3 class="font-bold">{item.title}</h3>
-		<p class="text-subtext-0 mb-2">{item.description}</p>
+		<h3 class="font-bold">{@html highlightSearchTerm(item.title)}</h3>
+		<p class="text-subtext-0 mb-2">{@html highlightSearchTerm(item.description)}</p>
 		<img src={item.imageUrl} alt={item.title} class="mb-2 h-64 w-[90%] object-contain" />
 		<div class="flex w-full flex-row gap-2">
 			<a
