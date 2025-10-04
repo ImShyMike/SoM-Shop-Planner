@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { selectedRegion } from '$lib/stores/region';
 	import type { Region, ShopItem } from '$lib/api';
+	import { balance } from '$lib/stores/balance';
 
 	let currentRegion: Region;
 	$: currentRegion = $selectedRegion;
+
+	let currentBalance: number;
+	$: currentBalance = $balance;
 
 	export let item: ShopItem;
 </script>
@@ -14,7 +18,7 @@
 			item.shopType === 'regular' ? 'border-ctp-subtext0/40' : 'border-ctp-yellow/40'
 		}`}
 	>
-		<div class="absolute top-2 right-2 flex items-center gap-1">
+		<div class="absolute top-4 right-4 flex items-center gap-1 text-lg">
 			<img
 				height="18"
 				width="18"
@@ -28,7 +32,7 @@
 		<p class="text-subtext-0 mb-2">{item.description}</p>
 		<img src={item.imageUrl} alt={item.title} class="mb-2 h-64 w-[90%] object-contain" />
 		<a
-			class="mt-auto inline-flex w-full transform-gpu cursor-pointer items-center justify-center gap-1.5 rounded-md bg-green p-2 font-medium text-crust transition duration-300 ease-out will-change-transform hover:scale-[1.04] hover:bg-green/90 active:scale-95"
+			class="{currentBalance >= item.prices[currentRegion] ? "cursor-pointer bg-green hover:scale-[1.04] hover:bg-green/90 active:scale-95" : "cursor-not-allowed bg-red/70"} mt-auto inline-flex w-full transform-gpu items-center justify-center gap-1.5 rounded-md  p-2 font-medium text-crust transition duration-300 ease-out will-change-transform"
 			href={item.purchaseUrl}
 			target="_blank"
 			rel="noopener noreferrer"

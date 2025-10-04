@@ -2,15 +2,27 @@
 	import { onMount } from 'svelte';
 	import { type ApiResponse, fetchData } from '$lib/api';
 	import { selectedRegion, setRegion, REGION_OPTIONS } from '$lib/stores/region';
+	import { balance, setBalance } from '$lib/stores/balance';
 	import ShopCard from '$lib/components/ShopCard.svelte';
 
 	let data: ApiResponse | undefined;
 	let showBlackMarket = false;
 	let showBadges = false;
+	let seachQuery = '';
+	let balanceInput = 0;
 	let filteredAndSorted: ApiResponse = [];
 	let badges: number[] = [110, 108, 105, 109, 113, 115, 114, 107];
 
+	$: balanceInput = $balance;
+
+	function handleBalanceInput(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const value = Number(target.value);
+		setBalance(Number.isFinite(value) ? value : 0);
+	}
+
 	onMount(async () => {
+		setBalance(localStorage.getItem('balance') ? Number(localStorage.getItem('balance')) : 0);
 		data = await fetchData();
 	});
 
@@ -23,6 +35,12 @@
 		filteredAndSorted = items
 			.filter((shop) => showBlackMarket || shop.shopType !== 'blackMarket')
 			.filter((shop) => showBadges || !badges.includes(shop.id))
+			.filter((shop) =>
+				seachQuery
+					? shop.title.toLowerCase().includes(seachQuery.toLowerCase()) ||
+					  shop.description.toLowerCase().includes(seachQuery.toLowerCase())
+					: true
+			)
 			.sort((a, b) => {
 				const priceA = normalizePrice(a.prices[region]);
 				const priceB = normalizePrice(b.prices[region]);
@@ -49,7 +67,7 @@
 			<h2 class="pb-2">Selected region: <span class="text-red">{$selectedRegion}</span></h2>
 			<div class="flex flex-wrap gap-2 text-subtext0">
 				{#each REGION_OPTIONS as r (r)}
-					<button class="rounded bg-overlay0/20 p-2" onclick={() => setRegion(r)}>{r}</button>
+					<button class="rounded bg-overlay0/20 p-2" on:click={() => setRegion(r)}>{r}</button>
 				{/each}
 			</div>
 		</div>
@@ -77,6 +95,35 @@
 					/>
 					Show Badges
 				</label>
+			</div>
+		</div>
+	</div>
+
+	<div class="mt-4 flex w-full max-w-4xl flex-row items-center justify-center gap-4 mx-auto">
+		<div class="flex w-full max-w-md flex-col gap-1 justify-center">
+			<label for="searchInput" class="text-sm text-subtext0">Search items</label>
+			<input
+				id="searchInput"
+				type="text"
+				placeholder="Search for items..."
+				bind:value={seachQuery}
+				tabindex="0"
+				class="w-full h-10 rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
+			/>
+		</div>
+		<div class="flex w-full max-w-[160px] flex-col gap-1 justify-center">
+			<label for="balanceInput" class="text-sm text-subtext0">Current shell balance</label>
+			<div class="relative">
+				<span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtext0">S</span>
+				<input
+					id="balanceInput"
+					type="number"
+					placeholder="Enter amount"
+					bind:value={balanceInput}
+					on:input={handleBalanceInput}
+					min="0"
+					class="w-full h-10 rounded border border-ctp-blue/70 bg-ctp-base p-2 pl-8 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
+				/>
 			</div>
 		</div>
 	</div>
