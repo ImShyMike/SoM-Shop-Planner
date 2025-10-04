@@ -1,46 +1,27 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { type ApiResponse, fetchData } from '$lib/api';
-	import { selectedRegion, setRegion, REGION_OPTIONS } from '$lib/stores/region';
-	import { setBalance } from '$lib/stores/balance';
-	import { searchQuery } from '$lib/stores/search';
+	import { config, updateConfig } from '$lib/stores/config';
 	import ShopCard from '$lib/components/ShopCard.svelte';
-
-	type FilterConfig = {
-		showBadges?: unknown;
-		showBlackMarket?: unknown;
-	};
+	import { REGIONS } from '$lib/api';
 
 	let data: ApiResponse | undefined;
-	let showBlackMarket = false;
-	let showBadges = false;
-	let hasMounted = false;
 	let filteredAndSorted: ApiResponse = [];
-	let badges: number[] = [110, 108, 105, 109, 113, 115, 114, 107];
+	const badges: number[] = [110, 108, 105, 109, 113, 115, 114, 107];
 
 	function handleBalanceInput(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const value = Number(target.value);
-		setBalance(Number.isFinite(value) ? value : 0);
+
+		updateConfig({ balance: Number.isFinite(value) ? value : 0 });
+	}
+
+	function handleSearchInput(event: Event) {
+		const target = event.target as HTMLInputElement;
+		updateConfig({ searchQuery: target.value });
 	}
 
 	onMount(async () => {
-		setBalance(localStorage.getItem('balance') ? Number(localStorage.getItem('balance')) : 0);
-		setRegion(localStorage.getItem('region') as string);
-		const rawFilter = localStorage.getItem('filter');
-		if (rawFilter) {
-			try {
-				const parsed = JSON.parse(rawFilter) as FilterConfig;
-				showBadges = Boolean(parsed.showBadges);
-				showBlackMarket = Boolean(parsed.showBlackMarket);
-			} catch (error) {
-				console.error('Failed to parse filter settings from storage', error);
-				showBadges = false;
-				showBlackMarket = false;
-				localStorage.removeItem('filter');
-			}
-		}
-		hasMounted = true;
 		data = await fetchData();
 	});
 
@@ -48,20 +29,20 @@
 		typeof price === 'number' && Number.isFinite(price) ? price : Number.POSITIVE_INFINITY;
 
 	$: {
-		const region = $selectedRegion;
+		const currentConfig = $config;
 		const items = data ? [...data] : [];
 		filteredAndSorted = items
-			.filter((shop) => showBlackMarket || shop.shopType !== 'blackMarket')
-			.filter((shop) => showBadges || !badges.includes(shop.id))
+			.filter((shop) => currentConfig.showBlackMarket || shop.shopType !== 'blackMarket')
+			.filter((shop) => currentConfig.showBadges || !badges.includes(shop.id))
 			.filter((shop) =>
-				$searchQuery
-					? shop.title.toLowerCase().includes($searchQuery.toLowerCase()) ||
-						shop.description.toLowerCase().includes($searchQuery.toLowerCase())
+				currentConfig.searchQuery
+					? shop.title.toLowerCase().includes(currentConfig.searchQuery.toLowerCase()) ||
+						shop.description.toLowerCase().includes(currentConfig.searchQuery.toLowerCase())
 					: true
 			)
 			.sort((a, b) => {
-				const priceA = normalizePrice(a.prices[region]);
-				const priceB = normalizePrice(b.prices[region]);
+				const priceA = normalizePrice(a.prices[currentConfig.region]);
+				const priceB = normalizePrice(b.prices[currentConfig.region]);
 
 				if (priceA === priceB) {
 					return a.title.localeCompare(b.title);
@@ -69,16 +50,6 @@
 
 				return priceA - priceB;
 			});
-	}
-
-	$: if (hasMounted) {
-		localStorage.setItem(
-			'filter',
-			JSON.stringify({
-				showBadges,
-				showBlackMarket
-			})
-		);
 	}
 </script>
 
@@ -94,8 +65,13 @@
 		>
 			<h2 class="pb-2">Shop Region</h2>
 			<div class="flex flex-wrap gap-2 text-subtext1">
-				{#each REGION_OPTIONS as r (r)}
-					<button class="{$selectedRegion == r ? "bg-blue text-crust" : "bg-overlay0/20"} cursor-pointer rounded p-2" onclick={() => setRegion(r)}>{r}</button>
+				{#each REGIONS as r (r)}
+					<button
+						class="{$config.region === r ? "bg-blue text-crust" : "bg-overlay0/20"} cursor-pointer rounded p-2"
+						on:click={() => updateConfig({ region: r })}
+					>
+						{r}
+					</button>
 				{/each}
 			</div>
 		</div>
@@ -109,8 +85,11 @@
 					<input
 						type="checkbox"
 						id="blackMarketToggle"
-						bind:checked={showBlackMarket}
+						checked={$config.showBlackMarket}
 						class="rounded bg-overlay0/80 accent-ctp-blue"
+						on:change={(event) =>
+							updateConfig({ showBlackMarket: (event.currentTarget as HTMLInputElement).checked })
+						}
 					/>
 					Show Black Market Items
 				</label>
@@ -118,8 +97,11 @@
 					<input
 						type="checkbox"
 						id="badgesToggle"
-						bind:checked={showBadges}
+						checked={$config.showBadges}
 						class="rounded bg-overlay0/80 accent-ctp-blue"
+						on:change={(event) =>
+							updateConfig({ showBadges: (event.currentTarget as HTMLInputElement).checked })
+						}
 					/>
 					Show Badges
 				</label>
@@ -134,7 +116,8 @@
 				id="searchInput"
 				type="text"
 				placeholder="Search for items..."
-				oninput={(e) => searchQuery.set((e.target as HTMLInputElement).value)}
+				value={$config.searchQuery}
+				on:input={handleSearchInput}
 				tabindex="0"
 				class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
 			/>
@@ -149,7 +132,8 @@
 					id="balanceInput"
 					type="number"
 					placeholder="Enter amount"
-					oninput={handleBalanceInput}
+					value={$config.balance ?? ''}
+					on:input={handleBalanceInput}
 					min="0"
 					class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 pl-8 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none"
 				/>

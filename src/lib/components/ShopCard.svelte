@@ -1,25 +1,10 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import { selectedRegion } from '$lib/stores/region';
 	import type { Region, ShopItem } from '$lib/api';
-	import { balance } from '$lib/stores/balance';
-	import { searchQuery } from '$lib/stores/search';
+	import { config } from '$lib/stores/config';
 
-	let currentRegion = $state<Region>('US');
-	let currentBalance = $state(0);
-
-	const unsubscribeRegion = selectedRegion.subscribe((value) => {
-		currentRegion = value;
-	});
-
-	const unsubscribeBalance = balance.subscribe((value) => {
-		currentBalance = value;
-	});
-
-	onDestroy(() => {
-		unsubscribeRegion();
-		unsubscribeBalance();
-	});
+	const currentRegion = $derived(($config.region ?? 'US') as Region);
+	const currentBalance = $derived($config.balance ?? 0);
+	const searchQuery = $derived($config.searchQuery?.trim() ?? '');
 
 	const props = $props<{ item: ShopItem }>();
 	let item: ShopItem = props.item;
@@ -37,7 +22,7 @@
 	}
 
 	function highlightSearchTerm(text: string): string {
-		const query = $searchQuery.trim();
+		const query = searchQuery;
 		if (!query) return text;
 
 		const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
