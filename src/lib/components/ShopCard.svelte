@@ -25,7 +25,7 @@
 			<span class="font-medium">{item.prices[currentRegion]}</span>
 		</div>
 		<h3 class="font-bold">{item.title}</h3>
-		<p class="text-subtext-0">{item.description}</p>
+		<p class="text-subtext-0 mb-2">{item.description}</p>
 		<img src={item.imageUrl} alt={item.title} class="mb-2 h-64 w-[90%] object-contain" />
 		<a
 			class="mt-auto inline-flex w-full transform-gpu cursor-pointer items-center justify-center gap-1.5 rounded-md bg-green p-2 font-medium text-crust transition duration-300 ease-out will-change-transform hover:scale-[1.04] hover:bg-green/90 active:scale-95"
