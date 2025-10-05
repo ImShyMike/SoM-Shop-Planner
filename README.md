@@ -1,38 +1,22 @@
-# sv
+# SoM Shop Planner
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Why would you need this? Ik ur gonna get 3 pairs of cat ears anyways :3
 
-## Creating a project
+![Demo website view](./assets/demo.png)
 
-If you're seeing this, you've probably already done this step. Congrats!
+---
 
-```sh
-# create a new project in the current directory
-npx sv create
+## What does it do?
 
-# create a new project in my-app
-npx sv create my-app
-```
+The website lets you make your own "shopping cart" of items from [Summer of Making](https://github.com/hackclub/summer-of-making/) (using [SoM Monitor](https://github.com/nordstromlabs/som-monitor) for real time item data) to help you pick what stuff get!
 
-## Developing
+## Usage
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Just set how many shells you have and get shopping!
 
-```sh
-npm run dev
+> [!TIP]
+> Holding down `ctrl` will multiply every item change by 10!
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## Why?
 
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Because _why not_ :P

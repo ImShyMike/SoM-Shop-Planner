@@ -12,8 +12,8 @@ export type Config = {
 };
 
 const DEFAULT_CONFIG: Config = {
-	showBadges: true,
-	showBlackMarket: false,
+	showBadges: false,
+	showBlackMarket: true,
 	showJokeItems: false,
 	searchQuery: '',
 	region: 'US',
