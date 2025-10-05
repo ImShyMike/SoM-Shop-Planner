@@ -4,6 +4,7 @@ import type { Region } from '../api';
 export type Config = {
 	showBadges: boolean;
 	showBlackMarket: boolean;
+	showJokeItems: boolean;
 	searchQuery: string;
 	region: Region;
 	balance: number;
@@ -13,6 +14,7 @@ export type Config = {
 const DEFAULT_CONFIG: Config = {
 	showBadges: true,
 	showBlackMarket: false,
+	showJokeItems: false,
 	searchQuery: '',
 	region: 'US',
 	balance: 0,

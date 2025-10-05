@@ -19,6 +19,7 @@
 	let data = $state<ApiResponse | undefined>(undefined);
 	let filteredAndSorted = $state<ApiResponse>([]);
 	let cartBreakdown = $state<CartLine[]>([]);
+	let barTicks = $state<number[]>([]);
 	let financeSummary = $state<FinanceSummary>({
 		totalItems: 0,
 		totalCost: 0,
@@ -27,7 +28,8 @@
 		overBudget: false
 	});
 	let showCart = $state(false);
-	const badges: number[] = [110, 108, 105, 109, 113, 115, 114, 107];
+	const badges: number[] = [110, 108, 105, 109, 113, 115, 114, 107, 106];
+	const jokeItems: number[] = [222, 111, 104, 209, 101, 146, 208, 248, 175];
 	const SHELL_ICON = 'https://summer.hackclub.com/shell.avif';
 
 	function handleBalanceInput(event: Event) {
@@ -50,6 +52,7 @@
 		return items
 			.filter((shop) => currentConfig.showBlackMarket || shop.shopType !== 'blackMarket')
 			.filter((shop) => currentConfig.showBadges || !badges.includes(shop.id))
+			.filter((shop) => currentConfig.showJokeItems || !jokeItems.includes(shop.id))
 			.filter((shop) => {
 				if (!currentConfig.searchQuery) return true;
 
@@ -76,6 +79,22 @@
 			});
 	}
 
+	function getItemTicks(items: CartLine[], total: number): number[] {
+		if (total <= 0) return [];
+
+		const ticks: number[] = [];
+		let spent = 0;
+
+		for (const item of items) {
+			spent += item.total;
+			if (spent >= total) break;
+
+			ticks.push(Math.max(0, Math.min(100, (spent / total) * 100)));
+		}
+
+		return ticks;
+	}
+
 	$effect(() => {
 		const currentConfig = $config;
 		const items = data ? [...data] : [];
@@ -85,6 +104,8 @@
 
 		const breakdown = buildCartBreakdown(items, cartState, currentConfig.region);
 		cartBreakdown = breakdown;
+
+		barTicks = getItemTicks(breakdown, currentConfig.balance);
 
 		const summary = summarizeFinance(breakdown, currentConfig.balance);
 		financeSummary = summary;
@@ -168,21 +189,18 @@
 							/>
 							Show Badges
 						</label>
-						<label for="sortBy" class="mt-2 flex cursor-pointer items-center gap-2 text-subtext0">
-							<select
-								id="sortBy"
-								bind:value={$config.sortBy}
-								class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text focus:border-ctp-blue focus:ring-1 focus:ring-ctp-blue focus:outline-none"
+						<label for="jokeFilter" class="flex cursor-pointer items-center gap-2 text-subtext0">
+							<input
+								type="checkbox"
+								id="jokeFilter"
+								checked={$config.showJokeItems}
 								onchange={(event) =>
 									updateConfig({
-										sortBy: (event.currentTarget as HTMLSelectElement).value as SortBy
+										showJokeItems: (event.currentTarget as HTMLInputElement).checked
 									})}
-							>
-								<option value="price">Sort by Price: Low to High</option>
-								<option value="price-desc">Sort by Price: High to Low</option>
-								<option value="title">Sort by Title: A to Z</option>
-								<option value="title-desc">Sort by Title: Z to A</option>
-							</select>
+								class="h-4 w-4 rounded bg-overlay0/80 accent-ctp-blue"
+							/>
+							Show Joke Items
 						</label>
 					</div>
 				</section>
@@ -223,6 +241,23 @@
 							class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 pl-8 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:ring-1 focus:ring-ctp-blue focus:outline-none"
 						/>
 					</div>
+				</div>
+				<div class="flex w-full flex-col gap-1 sm:w-70">
+					<label for="sortBy" class="text-sm text-subtext0">Sort by</label>
+					<select
+						id="sortBy"
+						bind:value={$config.sortBy}
+						class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text focus:border-ctp-blue focus:ring-1 focus:ring-ctp-blue focus:outline-none"
+						onchange={(event) =>
+							updateConfig({
+								sortBy: (event.currentTarget as HTMLSelectElement).value as SortBy
+							})}
+					>
+						<option value="price">Price: Low to High</option>
+						<option value="price-desc">Price: High to Low</option>
+						<option value="title">Title: A to Z</option>
+						<option value="title-desc">Title: Z to A</option>
+					</select>
 				</div>
 			</div>
 		</section>
@@ -373,14 +408,24 @@
 					</div>
 				</div>
 
-				<div class="w-max-full">
-					<div class="mt-4 h-4 w-full rounded bg-overlay0/20">
+				<div class="w-full">
+					<div class="relative mt-4 h-4 w-full overflow-hidden rounded bg-overlay0/20">
 						<div
-							class="h-4 rounded bg-green transition-all duration-500 ease-out"
-							style="width: {financeSummary.balance > 0
-								? Math.min((financeSummary.totalCost / financeSummary.balance) * 100, 100)
-								: 0}%"
+							class={`h-full rounded ${
+								financeSummary.totalCost > financeSummary.balance ? 'bg-red' : 'bg-green'
+							} transition-all duration-500 ease-out`}
+							style={`width: ${
+								financeSummary.balance > 0
+									? Math.min((financeSummary.totalCost / financeSummary.balance) * 100, 100)
+									: 0
+							}%`}
 						></div>
+						{#each barTicks as percent (percent)}
+							<div
+								class="pointer-events-none absolute inset-y-0 w-1 -translate-x-1/2 bg-crust/60"
+								style={`left: ${percent}%`}
+							></div>
+						{/each}
 					</div>
 				</div>
 
@@ -392,6 +437,7 @@
 								<th class="py-2 pr-4 font-semibold">Qty</th>
 								<th class="py-2 pr-4 font-semibold">Unit price</th>
 								<th class="py-2 pr-4 font-semibold">Total</th>
+								<th class=""></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -430,6 +476,20 @@
 												/>
 												<span>{formatNumber(line.total)}</span>
 											</div>
+										</td>
+										<td class="py-2">
+											<button
+												type="button"
+												class="cursor-pointer rounded bg-red/70 px-3 py-1 text-sm font-medium text-crust transition hover:bg-red/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-red focus-visible:ring-offset-2 focus-visible:ring-offset-ctp-base"
+												onclick={() =>
+													cart.update((c) => {
+														const updated = { ...c };
+														delete updated[line.item.id];
+														return updated;
+													})}
+											>
+												Remove
+											</button>
 										</td>
 									</tr>
 								{/each}
