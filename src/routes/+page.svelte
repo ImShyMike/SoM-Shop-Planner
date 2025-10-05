@@ -265,7 +265,7 @@
 	</div>
 
 	{#if showCart}
-		<div class="fixed inset-0 z-20 flex items-start justify-center px-4 py-6 mt-6">
+		<div class="fixed inset-0 z-20 flex items-start justify-center px-4 py-12">
 			<div
 				class="absolute inset-0 bg-mantle/60 backdrop-blur-sm"
 				aria-hidden="true"
