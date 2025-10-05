@@ -25,7 +25,5 @@ export type Region = 'US' | 'EU' | 'IN' | 'CA' | 'AU' | 'XX';
 export const REGIONS: Region[] = ['US', 'EU', 'IN', 'CA', 'AU', 'XX'];
 
 export async function fetchData(): Promise<ApiResponse> {
-	return fetch('https://summer.skyfall.dev/api/shop').then((res) =>
-		res.json()
-	);
+	return fetch('https://summer.skyfall.dev/api/shop').then((res) => res.json());
 }

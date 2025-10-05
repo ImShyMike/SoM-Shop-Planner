@@ -1,29 +1,20 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { type ApiResponse, type ShopItem, fetchData } from '$lib/api';
+	import { type ApiResponse, fetchData } from '$lib/api';
 	import { config, updateConfig } from '$lib/stores/config';
 	import type { Config } from '$lib/stores/config';
 	import ShopCard from '$lib/components/ShopCard.svelte';
 	import { REGIONS } from '$lib/api';
 	import { cart, clearCart } from '$lib/stores/cart';
-	import type { CartState } from '$lib/stores/cart';
 	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
 	import LucideShoppingCart from '~icons/lucide/shopping-cart';
-
-	type FinanceSummary = {
-		totalItems: number;
-		totalCost: number;
-		balance: number;
-		remainingBalance: number;
-		overBudget: boolean;
-	};
-
-	type CartLine = {
-		item: ShopItem;
-		count: number;
-		unitPrice: number;
-		total: number;
-	};
+	import { formatNumber, normalizePrice } from '$lib/utils';
+	import {
+		buildCartBreakdown,
+		summarizeFinance,
+		type CartLine,
+		type FinanceSummary
+	} from '$lib/cart';
 
 	let data = $state<ApiResponse | undefined>(undefined);
 	let filteredAndSorted = $state<ApiResponse>([]);
@@ -38,12 +29,6 @@
 	let showCart = $state(false);
 	const badges: number[] = [110, 108, 105, 109, 113, 115, 114, 107];
 	const SHELL_ICON = 'https://summer.hackclub.com/shell.avif';
-
-	const formatNumber = (value: number) =>
-		Math.abs(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
-
-	const normalizePrice = (price: number | null | undefined) =>
-		typeof price === 'number' && Number.isFinite(price) ? price : Number.POSITIVE_INFINITY;
 
 	function handleBalanceInput(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -83,56 +68,6 @@
 
 				return priceA - priceB;
 			});
-	}
-
-	function buildCartBreakdown(
-		items: ApiResponse,
-		cartState: CartState,
-		region: Config['region']
-	): CartLine[] {
-		const breakdown: CartLine[] = [];
-
-		for (const item of items) {
-			const count = cartState[item.id] ?? 0;
-			if (!count) continue;
-
-			const price = item.prices[region];
-			if (!Number.isFinite(price)) continue;
-
-			const total = price * count;
-			breakdown.push({
-				item,
-				count,
-				unitPrice: price,
-				total
-			});
-		}
-
-		return breakdown.sort((a, b) => a.item.title.localeCompare(b.item.title));
-	}
-
-	function summarizeFinance(
-		breakdown: CartLine[],
-		balanceInput: number | null | undefined
-	): FinanceSummary {
-		let totalItems = 0;
-		let totalCost = 0;
-
-		for (const line of breakdown) {
-			totalItems += line.count;
-			totalCost += line.total;
-		}
-
-		const balance = Number.isFinite(balanceInput) ? (balanceInput as number) : 0;
-		const remainingBalance = balance - totalCost;
-
-		return {
-			totalItems,
-			totalCost,
-			balance,
-			remainingBalance,
-			overBudget: balance > 0 ? totalCost > balance : false
-		};
 	}
 
 	$effect(() => {
