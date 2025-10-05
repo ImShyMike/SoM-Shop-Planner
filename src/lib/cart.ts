@@ -47,14 +47,13 @@ export function summarizeFinance(
 	breakdown: CartLine[],
 	balanceInput: number | null | undefined
 ): FinanceSummary {
-	let totalItems = 0;
-	let totalCost = 0;
-
-	for (const line of breakdown) {
-		totalItems += line.count;
-		totalCost += line.total;
-	}
-
+	const { totalItems, totalCost } = breakdown.reduce(
+        (acc, line) => ({
+            totalItems: acc.totalItems + line.count,
+            totalCost: acc.totalCost + line.total
+        }),
+        { totalItems: 0, totalCost: 0 }
+    );
 	const balance = Number.isFinite(balanceInput) ? (balanceInput as number) : 0;
 	const remainingBalance = balance - totalCost;
 

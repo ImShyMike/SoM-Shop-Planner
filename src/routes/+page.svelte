@@ -85,6 +85,11 @@
 	});
 </script>
 
+<svelte:head>
+	<title>SoM Shop Planner</title>
+	<meta name="description" content="Why would you need this? Ik ur gonna get 3 pairs of cat ears anyways :3" />
+</svelte:head>
+
 <main
 	class="relative flex min-h-screen w-full flex-col items-center bg-mantle p-2 text-text sm:p-4 md:p-8"
 >
