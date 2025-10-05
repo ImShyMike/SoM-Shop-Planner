@@ -70,8 +70,7 @@
 
 				const query = currentConfig.searchQuery.toLowerCase();
 				return (
-					shop.title.toLowerCase().includes(query) ||
-					shop.description.toLowerCase().includes(query)
+					shop.title.toLowerCase().includes(query) || shop.description.toLowerCase().includes(query)
 				);
 			})
 			.sort((a, b) => {
@@ -112,7 +111,10 @@
 		return breakdown.sort((a, b) => a.item.title.localeCompare(b.item.title));
 	}
 
-	function summarizeFinance(breakdown: CartLine[], balanceInput: number | null | undefined): FinanceSummary {
+	function summarizeFinance(
+		breakdown: CartLine[],
+		balanceInput: number | null | undefined
+	): FinanceSummary {
 		let totalItems = 0;
 		let totalCost = 0;
 
@@ -133,46 +135,48 @@
 		};
 	}
 
-	let previousCartItemCount = 0;
+	$effect(() => {
+		const currentConfig = $config;
+		const items = data ? [...data] : [];
+		const cartState = $cart;
 
-		$effect(() => {
-			const currentConfig = $config;
-			const items = data ? [...data] : [];
-			const cartState = $cart;
+		filteredAndSorted = filterAndSortItems(items, currentConfig);
 
-			filteredAndSorted = filterAndSortItems(items, currentConfig);
+		const breakdown = buildCartBreakdown(items, cartState, currentConfig.region);
+		cartBreakdown = breakdown;
 
-			const breakdown = buildCartBreakdown(items, cartState, currentConfig.region);
-			cartBreakdown = breakdown;
-
-			const summary = summarizeFinance(breakdown, currentConfig.balance);
-			financeSummary = summary;
-
-			previousCartItemCount = summary.totalItems;
-		});
+		const summary = summarizeFinance(breakdown, currentConfig.balance);
+		financeSummary = summary;
+	});
 </script>
 
-<main class="relative flex min-h-screen w-full flex-col items-center bg-mantle p-2 sm:p-4 md:p-8 text-text">
+<main
+	class="relative flex min-h-screen w-full flex-col items-center bg-mantle p-2 text-text sm:p-4 md:p-8"
+>
 	<div
 		class={`flex w-full flex-col items-center gap-6 transition duration-200 ${
 			showCart ? 'pointer-events-none blur-sm md:blur' : ''
 		}`}
 	>
-		<header class="text-center mt-4">
+		<header class="mt-4 text-center">
 			<h1 class="mb-2 text-4xl font-bold">SoM Shop Planner</h1>
 			<p class="text-subtext0">Don't know what to buy? Worry no more!</p>
 		</header>
 
 		<section class="w-full">
 			<div class="flex flex-wrap items-stretch justify-center gap-4">
-				<section class="flex w-full max-w-xs flex-col items-center gap-3 rounded border border-ctp-blue/70 bg-ctp-base p-4 text-text sm:max-w-sm">
+				<section
+					class="flex w-full max-w-xs flex-col items-center gap-3 rounded border border-ctp-blue/70 bg-ctp-base p-4 text-text sm:max-w-sm"
+				>
 					<h2 class="text-lg font-semibold">Shop Region</h2>
 					<div class="grid w-full grid-cols-2 gap-2 text-subtext1 sm:grid-cols-3">
 						{#each REGIONS as r (r)}
 							<button
 								type="button"
 								class={`cursor-pointer rounded px-3 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-ctp-base ${
-									$config.region === r ? 'bg-blue text-crust' : 'bg-overlay0/20 hover:bg-overlay0/40'
+									$config.region === r
+										? 'bg-blue text-crust'
+										: 'bg-overlay0/20 hover:bg-overlay0/40'
 								}`}
 								aria-pressed={$config.region === r}
 								onclick={() => updateConfig({ region: r })}
@@ -183,17 +187,24 @@
 					</div>
 				</section>
 
-				<section class="flex w-full max-w-xs flex-col gap-3 rounded border border-ctp-blue/70 bg-ctp-base p-4 text-text sm:max-w-sm">
+				<section
+					class="flex w-full max-w-xs flex-col gap-3 rounded border border-ctp-blue/70 bg-ctp-base p-4 text-text sm:max-w-sm"
+				>
 					<h2 class="text-lg font-semibold">Filter Options</h2>
 					<div class="flex flex-col gap-1 text-subtext0">
-						<label for="blackMarketToggle" class="flex cursor-pointer items-center gap-2 text-subtext0">
+						<label
+							for="blackMarketToggle"
+							class="flex cursor-pointer items-center gap-2 text-subtext0"
+						>
 							<input
 								type="checkbox"
 								id="blackMarketToggle"
 								checked={$config.showBlackMarket}
 								class="h-4 w-4 rounded bg-overlay0/80 accent-ctp-blue"
 								onchange={(event) =>
-									updateConfig({ showBlackMarket: (event.currentTarget as HTMLInputElement).checked })}
+									updateConfig({
+										showBlackMarket: (event.currentTarget as HTMLInputElement).checked
+									})}
 							/>
 							Show Black Market Items
 						</label>
@@ -214,7 +225,9 @@
 		</section>
 
 		<section class="w-full">
-			<div class="mx-auto flex w-full max-w-4xl flex-col items-stretch gap-4 sm:flex-row sm:items-end">
+			<div
+				class="mx-auto flex w-full max-w-4xl flex-col items-stretch gap-4 sm:flex-row sm:items-end"
+			>
 				<div class="flex w-full flex-col gap-1">
 					<label for="searchInput" class="text-sm text-subtext0">Search items</label>
 					<input
@@ -224,13 +237,15 @@
 						value={$config.searchQuery}
 						oninput={handleSearchInput}
 						tabindex="0"
-						class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none focus:ring-1 focus:ring-ctp-blue"
+						class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:ring-1 focus:ring-ctp-blue focus:outline-none"
 					/>
 				</div>
 				<div class="flex w-full flex-col gap-1 sm:w-40">
 					<label for="balanceInput" class="text-sm text-subtext0">Shell balance</label>
 					<div class="relative">
-						<span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-subtext0">
+						<span
+							class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-subtext0"
+						>
 							S
 						</span>
 						<input
@@ -240,7 +255,7 @@
 							value={$config.balance ?? ''}
 							oninput={handleBalanceInput}
 							min="0"
-							class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 pl-8 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:outline-none focus:ring-1 focus:ring-ctp-blue"
+							class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 pl-8 text-text placeholder:text-subtext0 focus:border-ctp-blue focus:ring-1 focus:ring-ctp-blue focus:outline-none"
 						/>
 					</div>
 				</div>
@@ -256,7 +271,7 @@
 						{/each}
 					</div>
 				{:else}
-					<p class="mt-4 text-center text-subtext0">No shops match the selected filters.</p>
+					<p class="mt-4 text-center text-subtext0">No items match the selected filters.</p>
 				{/if}
 			{:else}
 				<p class="mt-4 text-center">Loading...</p>
@@ -288,7 +303,7 @@
 					<div class="flex items-center gap-2">
 						<button
 							type="button"
-							class="rounded cursor-pointer border border-transparent bg-overlay0/40 px-3 py-2 text-sm font-medium text-subtext1 transition hover:bg-overlay0/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-ctp-base disabled:cursor-not-allowed disabled:opacity-60"
+							class="cursor-pointer rounded border border-transparent bg-overlay0/40 px-3 py-2 text-sm font-medium text-subtext1 transition hover:bg-overlay0/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-ctp-base disabled:cursor-not-allowed disabled:opacity-60"
 							onclick={clearCart}
 							disabled={!cartBreakdown.length}
 						>
@@ -296,7 +311,7 @@
 						</button>
 						<button
 							type="button"
-							class="rounded cursor-pointer border border-transparent bg-blue px-3 py-2 text-sm font-semibold text-crust transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-ctp-base"
+							class="cursor-pointer rounded border border-transparent bg-blue px-3 py-2 text-sm font-semibold text-crust transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-ctp-base"
 							onclick={() => (showCart = false)}
 						>
 							Close cart
@@ -307,21 +322,39 @@
 				<div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
 					<div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 						<div class="rounded bg-mantle/40 p-3">
-							<p class="text-xs font-semibold tracking-wide text-subtext0 uppercase">Selected items</p>
+							<p class="text-xs font-semibold tracking-wide text-subtext0 uppercase">
+								Selected items
+							</p>
 							<p class="text-2xl font-semibold text-text">{financeSummary.totalItems}</p>
 						</div>
 						<div class="rounded bg-mantle/40 p-3">
-							<p class="text-xs font-semibold tracking-wide text-subtext0 uppercase">Shells needed</p>
+							<p class="text-xs font-semibold tracking-wide text-subtext0 uppercase">
+								Shells needed
+							</p>
 							<div class="flex items-center gap-1 text-2xl font-semibold text-text">
-								<img height="18" width="18" src={SHELL_ICON} alt="shell icon" class="inline-block" />
+								<img
+									height="18"
+									width="18"
+									src={SHELL_ICON}
+									alt="shell icon"
+									class="inline-block"
+								/>
 								<span>{formatNumber(financeSummary.totalCost)}</span>
 							</div>
 						</div>
 						<div class="rounded bg-mantle/40 p-3">
-							<p class="text-xs font-semibold tracking-wide text-subtext0 uppercase">Current balance</p>
+							<p class="text-xs font-semibold tracking-wide text-subtext0 uppercase">
+								Current balance
+							</p>
 							<div class="flex items-center gap-1 text-2xl font-semibold text-text">
 								{#if financeSummary.balance > 0}
-									<img height="18" width="18" src={SHELL_ICON} alt="shell icon" class="inline-block" />
+									<img
+										height="18"
+										width="18"
+										src={SHELL_ICON}
+										alt="shell icon"
+										class="inline-block"
+									/>
 									<span>{formatNumber(financeSummary.balance)}</span>
 								{:else}
 									<span class="text-subtext0">--</span>
@@ -329,14 +362,22 @@
 							</div>
 						</div>
 						<div class="rounded bg-mantle/40 p-3">
-							<p class="text-xs font-semibold tracking-wide text-subtext0 uppercase">Remaining shells</p>
+							<p class="text-xs font-semibold tracking-wide text-subtext0 uppercase">
+								Remaining shells
+							</p>
 							{#if financeSummary.balance > 0}
 								<div
 									class={`flex items-center gap-1 text-2xl font-semibold ${
 										financeSummary.remainingBalance < 0 ? 'text-red' : 'text-green'
 									}`}
 								>
-									<img height="18" width="18" src={SHELL_ICON} alt="shell icon" class="inline-block" />
+									<img
+										height="18"
+										width="18"
+										src={SHELL_ICON}
+										alt="shell icon"
+										class="inline-block"
+									/>
 									<span>
 										{financeSummary.remainingBalance < 0 ? '-' : ''}{formatNumber(
 											Math.abs(financeSummary.remainingBalance)
@@ -371,7 +412,9 @@
 					<div class="mt-4 h-4 w-full rounded bg-overlay0/20">
 						<div
 							class="h-4 rounded bg-green transition-all duration-500 ease-out"
-							style="width: {financeSummary.balance > 0 ? Math.min((financeSummary.totalCost / financeSummary.balance) * 100, 100) : 0}%"
+							style="width: {financeSummary.balance > 0
+								? Math.min((financeSummary.totalCost / financeSummary.balance) * 100, 100)
+								: 0}%"
 						></div>
 					</div>
 				</div>
@@ -401,13 +444,25 @@
 										<td class="py-2 pr-4 text-center text-text">{line.count}</td>
 										<td class="py-2 pr-4">
 											<div class="flex items-center gap-1 text-text">
-												<img height="16" width="16" src={SHELL_ICON} alt="shell icon" class="inline-block" />
+												<img
+													height="16"
+													width="16"
+													src={SHELL_ICON}
+													alt="shell icon"
+													class="inline-block"
+												/>
 												<span>{formatNumber(line.unitPrice)}</span>
 											</div>
 										</td>
 										<td class="py-2 pr-4">
 											<div class="flex items-center gap-1 font-semibold text-text">
-												<img height="16" width="16" src={SHELL_ICON} alt="shell icon" class="inline-block" />
+												<img
+													height="16"
+													width="16"
+													src={SHELL_ICON}
+													alt="shell icon"
+													class="inline-block"
+												/>
 												<span>{formatNumber(line.total)}</span>
 											</div>
 										</td>
@@ -429,10 +484,10 @@
 
 	<button
 		type="button"
-		class="fixed cursor-pointer top-6 left-6 z-30 rounded-full bg-blue p-4 text-crust shadow transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-mantle disabled:cursor-not-allowed disabled:opacity-60"
+		class="fixed top-6 left-6 z-30 cursor-pointer rounded-full bg-blue p-4 text-crust shadow transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-mantle disabled:cursor-not-allowed disabled:opacity-60"
 		aria-controls="cart-panel"
-			aria-expanded={showCart}
-			aria-label={showCart ? 'Hide cart summary' : 'Show cart summary'}
+		aria-expanded={showCart}
+		aria-label={showCart ? 'Hide cart summary' : 'Show cart summary'}
 		onclick={() => {
 			showCart = !showCart;
 		}}

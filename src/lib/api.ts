@@ -25,7 +25,7 @@ export type Region = 'US' | 'EU' | 'IN' | 'CA' | 'AU' | 'XX';
 export const REGIONS: Region[] = ['US', 'EU', 'IN', 'CA', 'AU', 'XX'];
 
 export async function fetchData(): Promise<ApiResponse> {
-	return fetch('https://corsproxy.io/?url=https://summer.skyfall.dev/api/shop').then((res) =>
+	return fetch('https://summer.skyfall.dev/api/shop').then((res) =>
 		res.json()
 	);
 }

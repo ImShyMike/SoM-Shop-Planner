@@ -41,7 +41,7 @@
 
 <button
 	type="button"
-	class="flex top-6 left-6 p-4 cursor-pointer items-center justify-center rounded-full bg-blue text-crust shadow transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-mantle"
+	class="top-6 left-6 flex cursor-pointer items-center justify-center rounded-full bg-blue p-4 text-crust shadow transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-mantle"
 	aria-label={currentTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
 	on:click={toggleTheme}
 >
