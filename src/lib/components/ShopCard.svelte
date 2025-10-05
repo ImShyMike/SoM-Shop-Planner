@@ -53,10 +53,10 @@
 				</span>
 			</div>
 		{/if}
-		<h3 class="font-bold">{@html highlightSearchTerm(item.title)}</h3>
+		<h3 class="max-w-[60%] font-bold">{@html highlightSearchTerm(item.title)}</h3>
 		<p class="text-subtext-0 mb-2">{@html highlightSearchTerm(item.description)}</p>
-		<img src={item.imageUrl} alt={item.title} class="mb-2 h-64 w-[90%] object-contain" />
-		<div class="flex w-full flex-row gap-2">
+		<img src={item.imageUrl} alt={item.title} class="mb-auto h-64 w-[90%] object-contain" />
+		<div class="mt-3 flex w-full flex-row gap-2">
 			<a
 				class="{currentBalance >= item.prices[currentRegion]
 					? 'cursor-pointer bg-green hover:scale-[1.04] hover:bg-green/90 active:scale-95'

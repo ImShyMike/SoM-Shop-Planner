@@ -66,7 +66,7 @@
 					return priceA - priceB;
 				} else if (currentConfig.sortBy === 'price-desc') {
 					return priceB - priceA;
-				} else  if (currentConfig.sortBy === 'title') {
+				} else if (currentConfig.sortBy === 'title') {
 					return a.title.localeCompare(b.title);
 				} else if (currentConfig.sortBy === 'title-desc') {
 					return b.title.localeCompare(a.title);
@@ -93,7 +93,10 @@
 
 <svelte:head>
 	<title>SoM Shop Planner</title>
-	<meta name="description" content="Why would you need this? Ik ur gonna get 3 pairs of cat ears anyways :3" />
+	<meta
+		name="description"
+		content="Why would you need this? Ik ur gonna get 3 pairs of cat ears anyways :3"
+	/>
 </svelte:head>
 
 <main
@@ -165,13 +168,15 @@
 							/>
 							Show Badges
 						</label>
-						<label for="sortBy" class="flex cursor-pointer items-center gap-2 text-subtext0 mt-2">
+						<label for="sortBy" class="mt-2 flex cursor-pointer items-center gap-2 text-subtext0">
 							<select
 								id="sortBy"
 								bind:value={$config.sortBy}
 								class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text focus:border-ctp-blue focus:ring-1 focus:ring-ctp-blue focus:outline-none"
 								onchange={(event) =>
-									updateConfig({ sortBy: (event.currentTarget as HTMLSelectElement).value as SortBy })}
+									updateConfig({
+										sortBy: (event.currentTarget as HTMLSelectElement).value as SortBy
+									})}
 							>
 								<option value="price">Sort by Price: Low to High</option>
 								<option value="price-desc">Sort by Price: High to Low</option>
@@ -444,7 +449,7 @@
 
 	<button
 		type="button"
-		class="fixed bottom-4 sm:bottom-auto sm:top-6 left-6 z-30 cursor-pointer rounded-full bg-blue p-4 text-crust shadow transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-mantle disabled:cursor-not-allowed disabled:opacity-60"
+		class="fixed bottom-4 left-6 z-30 cursor-pointer rounded-full bg-blue p-4 text-crust shadow transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-mantle disabled:cursor-not-allowed disabled:opacity-60 sm:top-6 sm:bottom-auto"
 		aria-controls="cart-panel"
 		aria-expanded={showCart}
 		aria-label={showCart ? 'Hide cart summary' : 'Show cart summary'}
@@ -452,10 +457,10 @@
 			showCart = !showCart;
 		}}
 	>
-		<LucideShoppingCart class="h-10 sm:h-16 w-10 sm:w-16" />
+		<LucideShoppingCart class="h-10 w-10 sm:h-16 sm:w-16" />
 	</button>
 
-	<div class="fixed bottom-4 sm:top-6 right-6 z-30">
+	<div class="fixed right-6 bottom-4 z-30 sm:top-6">
 		<ThemeSwitcher />
 	</div>
 </main>

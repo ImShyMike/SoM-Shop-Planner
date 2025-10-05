@@ -45,5 +45,8 @@
 	aria-label={currentTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
 	on:click={toggleTheme}
 >
-	<svelte:component this={currentTheme === 'dark' ? LucideSun : LucideMoon} class="h-10 sm:h-16 w-10 sm:w-16" />
+	<svelte:component
+		this={currentTheme === 'dark' ? LucideSun : LucideMoon}
+		class="h-10 w-10 sm:h-16 sm:w-16"
+	/>
 </button>
