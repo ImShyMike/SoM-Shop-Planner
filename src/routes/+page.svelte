@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { type ApiResponse, fetchData } from '$lib/api';
 	import { config, updateConfig } from '$lib/stores/config';
-	import type { Config } from '$lib/stores/config';
+	import type { Config, SortBy } from '$lib/stores/config';
 	import ShopCard from '$lib/components/ShopCard.svelte';
 	import { REGIONS } from '$lib/api';
 	import { cart, clearCart } from '$lib/stores/cart';
@@ -62,11 +62,17 @@
 				const priceA = normalizePrice(a.prices[currentConfig.region]);
 				const priceB = normalizePrice(b.prices[currentConfig.region]);
 
-				if (priceA === priceB) {
+				if (currentConfig.sortBy === 'price') {
+					return priceA - priceB;
+				} else if (currentConfig.sortBy === 'price-desc') {
+					return priceB - priceA;
+				} else  if (currentConfig.sortBy === 'title') {
 					return a.title.localeCompare(b.title);
+				} else if (currentConfig.sortBy === 'title-desc') {
+					return b.title.localeCompare(a.title);
+				} else {
+					return 0;
 				}
-
-				return priceA - priceB;
 			});
 	}
 
@@ -158,6 +164,20 @@
 									updateConfig({ showBadges: (event.currentTarget as HTMLInputElement).checked })}
 							/>
 							Show Badges
+						</label>
+						<label for="sortBy" class="flex cursor-pointer items-center gap-2 text-subtext0 mt-2">
+							<select
+								id="sortBy"
+								bind:value={$config.sortBy}
+								class="h-10 w-full rounded border border-ctp-blue/70 bg-ctp-base p-2 text-text focus:border-ctp-blue focus:ring-1 focus:ring-ctp-blue focus:outline-none"
+								onchange={(event) =>
+									updateConfig({ sortBy: (event.currentTarget as HTMLSelectElement).value as SortBy })}
+							>
+								<option value="price">Sort by Price: Low to High</option>
+								<option value="price-desc">Sort by Price: High to Low</option>
+								<option value="title">Sort by Title: A to Z</option>
+								<option value="title-desc">Sort by Title: Z to A</option>
+							</select>
 						</label>
 					</div>
 				</section>
@@ -424,7 +444,7 @@
 
 	<button
 		type="button"
-		class="fixed top-6 left-6 z-30 cursor-pointer rounded-full bg-blue p-4 text-crust shadow transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-mantle disabled:cursor-not-allowed disabled:opacity-60"
+		class="fixed bottom-4 sm:bottom-auto sm:top-6 left-6 z-30 cursor-pointer rounded-full bg-blue p-4 text-crust shadow transition hover:bg-ctp-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 focus-visible:ring-offset-mantle disabled:cursor-not-allowed disabled:opacity-60"
 		aria-controls="cart-panel"
 		aria-expanded={showCart}
 		aria-label={showCart ? 'Hide cart summary' : 'Show cart summary'}
@@ -432,10 +452,10 @@
 			showCart = !showCart;
 		}}
 	>
-		<LucideShoppingCart class="h-16 w-16" />
+		<LucideShoppingCart class="h-10 sm:h-16 w-10 sm:w-16" />
 	</button>
 
-	<div class="fixed top-6 right-6 z-30">
+	<div class="fixed bottom-4 sm:top-6 right-6 z-30">
 		<ThemeSwitcher />
 	</div>
 </main>

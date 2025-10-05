@@ -7,6 +7,7 @@ export type Config = {
 	searchQuery: string;
 	region: Region;
 	balance: number;
+	sortBy: SortBy;
 };
 
 const DEFAULT_CONFIG: Config = {
@@ -14,8 +15,18 @@ const DEFAULT_CONFIG: Config = {
 	showBlackMarket: false,
 	searchQuery: '',
 	region: 'US',
-	balance: 0
+	balance: 0,
+	sortBy: 'price'
 };
+
+export type SortBy = 'price' | 'price-desc' | 'title' | 'title-desc';
+
+export const SORT_OPTIONS: { label: string; value: SortBy }[] = [
+	{ label: 'Price (Low to High)', value: 'price' },
+	{ label: 'Price (High to Low)', value: 'price-desc' },
+	{ label: 'Title (A-Z)', value: 'title' },
+	{ label: 'Title (Z-A)', value: 'title-desc' }
+];
 
 function loadConfig(): Config {
 	if (typeof localStorage === 'undefined') {
