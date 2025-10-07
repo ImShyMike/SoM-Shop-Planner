@@ -512,7 +512,7 @@
 		<LucideShoppingCart class="h-10 w-10 sm:h-16 sm:w-16" />
 	</button>
 
-	<div class="fixed right-6 bottom-4 z-30 sm:top-6">
+	<div class="fixed right-6 bottom-4 sm:bottom-auto z-30 sm:top-6">
 		<ThemeSwitcher />
 	</div>
 </main>
